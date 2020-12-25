@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1026551991013",
+    "project_id": "greenandclean-android",
+    "storage_bucket": "greenandclean-android.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1026551991013:android:ced59987e73a88ddfea20c",
+        "android_client_info": {
+          "package_name": "com.trungngo.asm2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1026551991013-49o8uiljuv2e2uina0bk8i1h2i1smt0n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXdQuqJFwgK44v-vDc9hcqXkL9xACiGQY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1026551991013-49o8uiljuv2e2uina0bk8i1h2i1smt0n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
