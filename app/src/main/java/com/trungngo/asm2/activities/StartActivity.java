@@ -1,4 +1,4 @@
-package com.trungngo.asm2;
+package com.trungngo.asm2.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+
+import com.trungngo.asm2.R;
 
 public class StartActivity extends AppCompatActivity {
     Button loginActivityBtn, registerActivityBtn;

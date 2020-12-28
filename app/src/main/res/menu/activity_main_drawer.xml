@@ -11,14 +11,13 @@
 
             <item
                 android:id="@+id/nav_maps"
-                android:icon="@drawable/ic_find_sites"
-                android:title="Find new site" />
-        </group>
-<!--    <group android:checkableBehavior="single">-->
-<!--        <item-->
-<!--            android:id="@+id/site_list"-->
-<!--            android:icon="@drawable/ic_site_list"-->
-<!--            android:title="My Sites" />-->
+                android:icon="@drawable/ic_find_site"
+                android:title="Join sites" />
 
-<!--    </group>-->
+            <item
+                android:id="@+id/create_site"
+                android:icon="@drawable/ic_create_site"
+                android:title="Create site" />
+        </group>
+
 </menu>

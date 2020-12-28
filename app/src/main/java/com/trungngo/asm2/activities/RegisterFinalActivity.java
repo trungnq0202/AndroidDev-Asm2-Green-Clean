@@ -1,4 +1,4 @@
-package com.trungngo.asm2;
+package com.trungngo.asm2.activities;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -18,9 +18,12 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.trungngo.asm2.Constants;
+import com.trungngo.asm2.R;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -93,6 +96,8 @@ public class RegisterFinalActivity extends AppCompatActivity {
         data.put(Constants.FSUser.genderField, gender);
         data.put(Constants.FSUser.emailField, emailEditText.getText().toString());
         data.put(Constants.FSUser.roleField, "user");
+        data.put(Constants.FSUser.ownSitesIdField, new ArrayList<String>());
+        data.put(Constants.FSUser.participatingSitesIdField, new ArrayList<String>());
 
         db.collection(Constants.FSUser.userCollection).add(data);
     }

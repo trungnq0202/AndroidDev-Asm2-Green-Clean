@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#EBFAFE"
-    tools:context=".RegisterActivity">
+    tools:context=".activities.RegisterActivity">
 
     <Button
         android:id="@+id/registerBackBtn"

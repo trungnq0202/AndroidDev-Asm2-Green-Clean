@@ -1,4 +1,4 @@
-package com.trungngo.asm2;
+package com.trungngo.asm2.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +14,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.trungngo.asm2.Constants;
+import com.trungngo.asm2.R;
 
 public class LoginActivity extends AppCompatActivity {
     Button backBtn, loginBtn;

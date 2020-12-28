@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#2AC7FE"
-    tools:context=".LoginActivity">
+    tools:context=".activities.LoginActivity">
 
     <EditText
         android:id="@+id/loginEmailEditText"
@@ -17,7 +17,7 @@
         android:hint="Email"
         android:inputType="textEmailAddress"
         android:padding="10dp"
-        android:text="nqtrung02022000@gmail.com"
+        android:text="vy@gmail.com"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.483"
@@ -33,7 +33,7 @@
         android:background="#FFFFFF"
         android:ems="10"
         android:hint="Password"
-        android:text="trungyeuvy30010202!"
+        android:text="vy1234"
         android:inputType="textPassword"
         android:padding="10dp"
         app:layout_constraintBottom_toBottomOf="parent"

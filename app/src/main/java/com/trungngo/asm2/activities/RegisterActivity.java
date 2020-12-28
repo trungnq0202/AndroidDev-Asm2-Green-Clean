@@ -1,4 +1,4 @@
-package com.trungngo.asm2;
+package com.trungngo.asm2.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,6 +14,9 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Toast;
+
+import com.trungngo.asm2.Constants;
+import com.trungngo.asm2.R;
 
 import java.util.Calendar;
 
