@@ -32,4 +32,11 @@ public class HomeFragment extends Fragment {
         });
         return root;
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        System.out.println("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC");
+        System.out.println("Destroying HomeFragment View");
+    }
 }

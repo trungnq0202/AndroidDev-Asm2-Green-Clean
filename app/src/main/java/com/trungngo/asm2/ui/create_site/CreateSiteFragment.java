@@ -483,6 +483,13 @@ public class CreateSiteFragment extends Fragment {
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        System.out.println("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC");
+        System.out.println("Destroying CreateSiteFragment View");
+    }
+
+    @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mViewModel = ViewModelProviders.of(getActivity()).get(CreateSiteViewModel.class);

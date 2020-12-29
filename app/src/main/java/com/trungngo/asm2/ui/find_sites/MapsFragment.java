@@ -1,11 +1,20 @@
 package com.trungngo.asm2.ui.find_sites;
 
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.VectorDrawable;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -34,6 +43,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -188,7 +198,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                         }
                         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                         mMap.addMarker(new MarkerOptions().position(latLng)
-                                .icon(BitmapDescriptorFactory.defaultMarker()));
+                                .icon(bitmapDescriptorFromVector(getActivity(), R.drawable.ic_current_location_marker)));
                         smoothlyMoveCameraToPosition(latLng, Constants.CameraZoomLevel.streets);
 //                        Toast.makeText(getActivity(),
 //                                "(" + location.getLatitude() + ","+
@@ -196,6 +206,17 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
 //                                Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
+        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
+        DrawableCompat.setTint(vectorDrawable, Color.BLUE);
+        DrawableCompat.setTintMode(vectorDrawable, PorterDuff.Mode.SRC_IN);
+        vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
+        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
     @Override
@@ -229,7 +250,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         fetchSitesThenMakeClusters();
     }
 
-    private void addClusterItem(LatLng latLng, String siteName){
+    private void addClusterItem(LatLng latLng, String siteName) {
         double lat = latLng.latitude;
         double lng = latLng.longitude;
         MyClusterItem offsetItem = new MyClusterItem(lat, lng, "Title " + siteName, "Snippet " + siteName);
@@ -320,6 +341,13 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                         Constants.ToastMessage.placeAutocompleteError + status, Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        System.out.println("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC");
+        System.out.println("Destroying MapsFragment View");
     }
 
     @Override
