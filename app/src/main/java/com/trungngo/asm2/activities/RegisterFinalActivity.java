@@ -89,6 +89,7 @@ public class RegisterFinalActivity extends AppCompatActivity {
         @SuppressLint("SimpleDateFormat") SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
         Date birthDateNew = df.parse(month + "/" + day + "/" + year);
 
+        //Create data hashmap to push to FireStore db
         Map<String, Object> data = new HashMap<>();
         data.put(Constants.FSUser.usernameField, username);
         data.put(Constants.FSUser.phoneField, phone);

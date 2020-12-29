@@ -200,7 +200,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        String apiKey = getString(R.string.api_key);
+        String apiKey = getString(R.string.google_maps_key);
         if (!Places.isInitialized()) {
             Places.initialize(getActivity().getApplicationContext(), apiKey);
         }
@@ -274,7 +274,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         String apiKey = getString(R.string.api_key);
 
         if (!Places.isInitialized()) {
-            Places.initialize(getActivity().getApplicationContext(), apiKey);
+            Places.initialize(getActivity().getApplicationContext(), "AIzaSyDIMOeueEaTD8QrMDMPAkMQn7uN3WJpvOs");
         }
 
         this.placesClient = Places.createClient(getActivity().getApplicationContext());

@@ -100,6 +100,7 @@ public class CreateSiteFragment extends Fragment {
         return new CreateSiteFragment();
     }
 
+    //Reset all form variables on next Place query
     private void resetState() {
         startDate = null;
         endDate = null;
@@ -107,6 +108,7 @@ public class CreateSiteFragment extends Fragment {
         usedPlace = null;
     }
 
+    //Connect view elements of layout to this class variable
     private void linkViewElements(View rootView) {
         countryTextView = rootView.findViewById(R.id.createSiteCountryTextView);
         streetNumberTextView = rootView.findViewById(R.id.createSiteStreetNumberTextView);
@@ -126,10 +128,10 @@ public class CreateSiteFragment extends Fragment {
 
     private void initGooglePlacesAutocomplete() {
         //Init the SDK
-        String apiKey = getString(R.string.api_key);
+        String apiKey = getString(R.string.google_maps_key);
 
         if (!Places.isInitialized()) {
-            Places.initialize(getActivity().getApplicationContext(), apiKey);
+            Places.initialize(getActivity().getApplicationContext(), "AIzaSyDIMOeueEaTD8QrMDMPAkMQn7uN3WJpvOs");
         }
 
         this.placesClient = Places.createClient(getActivity().getApplicationContext());
@@ -150,6 +152,7 @@ public class CreateSiteFragment extends Fragment {
                 ));
     }
 
+    //Create necessary action handlers
     private void setActionHandlers() {
         //Set OnPlaceSelectedActionHandler to fill all location details editText
         setPlaceSelectedActionHandler();
@@ -166,7 +169,7 @@ public class CreateSiteFragment extends Fragment {
         setCreateSiteBtnHandler();
     }
 
-    //Validate if site details are enough
+    //Validate if site details are enough (country, street, city, district fields must not be empty)
     private boolean checkSiteLocationDetailsNotEnough() {
         return
                 countryTextView.getText().toString().isEmpty()
@@ -255,6 +258,7 @@ public class CreateSiteFragment extends Fragment {
         return true;
     }
 
+    //Create HashMap data to push to db
     private void addNewSiteToDatabase() {
         Map<String, Object> siteData = new HashMap<>();
         siteData.put(Constants.FSSite.adminIdField, currentUserDocId);
@@ -271,7 +275,7 @@ public class CreateSiteFragment extends Fragment {
                     public void onComplete(@NonNull Task<DocumentReference> task) {
                         if (task.isSuccessful()) {
                             DocumentReference docRef = task.getResult();
-                            updateCurrentUserOwnSites(docRef.getId());
+                            updateCurrentUserOwnSites(docRef.getId()); //Add this newly created site to current user's own site list.
                         } else {
 
                         }

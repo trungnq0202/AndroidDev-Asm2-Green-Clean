@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
 
+    //Set up navigation drawer activity
     private void navigationDrawerSetup(){
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -67,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navigationView, navController);
     }
 
+    //Connect view elements of layout to this class variable
     private void linkViewElements(){
         NavigationView navigationView = findViewById(R.id.nav_view);
         LinearLayout navHeaderView = (LinearLayout) navigationView.getHeaderView(0);
@@ -80,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         navHeaderUsernameTextView.setText(currentUserObject.getUsername());
     }
 
+    //Get instances of Firebase FireStore Auth, db, current user
     private void initFirebaseCurrentUserInfo(){
         //Get instances of Firebase FireStore
         mAuth = FirebaseAuth.getInstance();
@@ -88,11 +91,13 @@ public class MainActivity extends AppCompatActivity {
         getCurrentUserObject(); //Get current user object info
     }
 
+    //Init all child fragments' view models
     private void initAllChildFragmentsViewModel(){
         createSiteViewModel = ViewModelProviders.of(this).get(CreateSiteViewModel.class);
         mapsViewModel = ViewModelProviders.of(this).get(MapsViewModel.class);
     }
 
+    //Send current user data through child fragments' view models
     private void setAllChildFragmentsViewModelData(){
         createSiteViewModel.setData(currentUserObject, currentUserDocId);
         mapsViewModel.setData(currentUserObject, currentUserDocId);
@@ -108,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
         initAllChildFragmentsViewModel();
     }
 
+    //Get current user object from FireStore
     private void getCurrentUserObject() {
         db.collection(Constants.FSUser.userCollection)
                 .whereEqualTo(Constants.FSUser.emailField, currentUser.getEmail())
