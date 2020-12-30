@@ -7,7 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class DateStringParser {
-    public static Date parseFromDateString(String dateString) throws ParseException {
+    public static Date parseFromDateStringMMDDYYYY(String dateString) throws ParseException {
         @SuppressLint("SimpleDateFormat") SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
         String[] splitDateStr = dateString.split("/");
 
@@ -16,5 +16,10 @@ public class DateStringParser {
         int year = Integer.parseInt(splitDateStr[2]);
 
         return df.parse(month + "/" + day + "/" + year);
+    }
+
+    public static String parseFromDateObjectDDMMYYYY(Date date) throws ParseException {
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+        return df.format(date);
     }
 }

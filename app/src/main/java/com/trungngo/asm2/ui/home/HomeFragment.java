@@ -36,7 +36,5 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        System.out.println("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC");
-        System.out.println("Destroying HomeFragment View");
     }
 }

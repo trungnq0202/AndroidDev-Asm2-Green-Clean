@@ -131,7 +131,7 @@ public class CreateSiteFragment extends Fragment {
         String apiKey = getString(R.string.google_maps_key);
 
         if (!Places.isInitialized()) {
-            Places.initialize(getActivity().getApplicationContext(), "AIzaSyDIMOeueEaTD8QrMDMPAkMQn7uN3WJpvOs");
+            Places.initialize(getActivity().getApplicationContext(), apiKey);
         }
 
         this.placesClient = Places.createClient(getActivity().getApplicationContext());
@@ -147,8 +147,7 @@ public class CreateSiteFragment extends Fragment {
                         Place.Field.NAME,
                         Place.Field.LAT_LNG,
                         Place.Field.ADDRESS,
-                        Place.Field.ADDRESS_COMPONENTS,
-                        Place.Field.PLUS_CODE
+                        Place.Field.ADDRESS_COMPONENTS
                 ));
     }
 
@@ -237,8 +236,8 @@ public class CreateSiteFragment extends Fragment {
 
         //Parse date strings to date objects
         try {
-            startDate = DateStringParser.parseFromDateString(startDateEditText.getText().toString());
-            endDate = DateStringParser.parseFromDateString(endDateEditText.getText().toString());
+            startDate = DateStringParser.parseFromDateStringMMDDYYYY(startDateEditText.getText().toString());
+            endDate = DateStringParser.parseFromDateStringMMDDYYYY(endDateEditText.getText().toString());
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -266,7 +265,12 @@ public class CreateSiteFragment extends Fragment {
         siteData.put(Constants.FSSite.participantsIdField, new ArrayList<>());
         siteData.put(Constants.FSSite.startDateField, startDate);
         siteData.put(Constants.FSSite.endDateField, endDate);
-        siteData.put(Constants.FSSite.locationIdField, chosenPlace.getId());
+
+        siteData.put(Constants.FSSite.placeIdField, chosenPlace.getId());
+        siteData.put(Constants.FSSite.placeName, chosenPlace.getName());
+        siteData.put(Constants.FSSite.placeLatitude, chosenPlace.getLatLng().latitude);
+        siteData.put(Constants.FSSite.placeLongitude, chosenPlace.getLatLng().longitude);
+        siteData.put(Constants.FSSite.placeAddress, chosenPlace.getAddress());
 
         db.collection(Constants.FSSite.siteCollection)
                 .add(siteData)
@@ -302,7 +306,7 @@ public class CreateSiteFragment extends Fragment {
                             resetState();
                             moveToMyCreatedSitesFragment();
                             Toast.makeText(getActivity().getApplicationContext(),
-                                    Constants.ToastMessage.successfullyCreateSite, Toast.LENGTH_LONG);
+                                    Constants.ToastMessage.successfullyCreateSite, Toast.LENGTH_LONG).show();
                         } else {
 
                         }
@@ -485,8 +489,6 @@ public class CreateSiteFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        System.out.println("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC");
-        System.out.println("Destroying CreateSiteFragment View");
     }
 
     @Override

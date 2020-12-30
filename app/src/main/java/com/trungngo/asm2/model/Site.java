@@ -1,29 +1,42 @@
 package com.trungngo.asm2.model;
 
-import com.google.android.libraries.places.api.model.Place;
-import com.trungngo.asm2.Constants;
+import com.google.firebase.firestore.DocumentId;
 
 import java.util.Date;
 import java.util.List;
 
 public class Site {
+
+    @DocumentId
+    private String docId;
     private String siteName;
     private String adminId;
     private List<String> participantsId;
     private Date startDate;
     private Date endDate;
-    private String locationId;
+
+    private String placeId;
+    private String placeName;
+    private double placeLatitude;
+    private double placeLongitude;
+    private String placeAddress;
+
 
     public Site() {
     }
 
-    public Site(String siteName, String adminId, List<String> participantsId, Date startDate, Date endDate, String locationId) {
+    public Site(String docId, String siteName, String adminId, List<String> participantsId, Date startDate, Date endDate, String placeId, String placeName, double placeLatitude, double placeLongitude, String placeAddress) {
+        this.docId = docId;
         this.siteName = siteName;
         this.adminId = adminId;
         this.participantsId = participantsId;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.locationId = locationId;
+        this.placeId = placeId;
+        this.placeName = placeName;
+        this.placeLatitude = placeLatitude;
+        this.placeLongitude = placeLongitude;
+        this.placeAddress = placeAddress;
     }
 
     public String getSiteName() {
@@ -66,13 +79,51 @@ public class Site {
         this.endDate = endDate;
     }
 
-    public String getLocationId() {
-        return locationId;
+    public String getPlaceId() {
+        return placeId;
     }
 
-    public void setLocationId(String locationId) {
-        this.locationId = locationId;
+    public void setPlaceId(String placeId) {
+        this.placeId = placeId;
     }
 
+    public String getPlaceName() {
+        return placeName;
+    }
 
+    public void setPlaceName(String placeName) {
+        this.placeName = placeName;
+    }
+
+    public double getPlaceLatitude() {
+        return placeLatitude;
+    }
+
+    public void setPlaceLatitude(double placeLatitude) {
+        this.placeLatitude = placeLatitude;
+    }
+
+    public double getPlaceLongitude() {
+        return placeLongitude;
+    }
+
+    public void setPlaceLongitude(double placeLongitude) {
+        this.placeLongitude = placeLongitude;
+    }
+
+    public String getPlaceAddress() {
+        return placeAddress;
+    }
+
+    public void setPlaceAddress(String placeAddress) {
+        this.placeAddress = placeAddress;
+    }
+
+    public String getDocId() {
+        return docId;
+    }
+
+    public void setDocId(String docId) {
+        this.docId = docId;
+    }
 }

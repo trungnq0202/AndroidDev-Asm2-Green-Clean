@@ -8,13 +8,25 @@
     <fragment
         android:id="@+id/nav_home"
         android:name="com.trungngo.asm2.ui.home.HomeFragment"
-        android:label="@string/menu_home"
+        android:label="Created sites"
         tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/nav_participating_sites"
+        android:name="com.trungngo.asm2.ui.participating_sites.ParticipatingSitesFragment"
+        android:label="Participating sites"
+        tools:layout="@layout/fragment_participating_sites" />
+
+    <fragment
+        android:id="@+id/nav_superuser"
+        android:name="com.trungngo.asm2.ui.superuser.SuperUserFragment"
+        android:label="All available sites"
+        tools:layout="@layout/fragment_super_user" />
 
     <fragment
         android:id="@+id/nav_maps"
         android:name="com.trungngo.asm2.ui.find_sites.MapsFragment"
-        android:label="Join sites"
+        android:label="My participating sites"
         tools:layout="@layout/fragment_maps" />
 
     <fragment
@@ -22,5 +34,12 @@
         android:name="com.trungngo.asm2.ui.create_site.CreateSiteFragment"
         android:label="Create site"
         tools:layout="@layout/fragment_create_site" />
+
+    <fragment
+        android:id="@+id/edit_site"
+        android:name="com.trungngo.asm2.ui.edit_site.EditSiteFragment"
+        android:label="Edit site"
+        tools:layout="@layout/fragment_edit_site"
+        />
 
 </navigation>

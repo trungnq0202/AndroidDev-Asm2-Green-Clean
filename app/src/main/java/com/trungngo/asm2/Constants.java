@@ -11,9 +11,9 @@ public class Constants {
         public static final String birthDateField = "birthDate";
         public static final String genderField = "gender";
         public static final String emailField = "email";
-        public static final String roleField = "role";
         public static final String ownSitesIdField = "ownSitesId";
         public static final String participatingSitesIdField = "participatingSitesId";
+        public static final String superuserField = "superuser";
     }
 
     public static class FSSite {
@@ -23,7 +23,12 @@ public class Constants {
         public static final String participantsIdField = "participantsId";
         public static final String startDateField = "startDate";
         public static final String endDateField = "endDate";
-        public static final String locationIdField = "locationId";
+
+        public static final String placeIdField = "placeId";
+        public static final String placeName = "placeName";
+        public static final String placeLatitude = "placeLatitude";
+        public static final String placeLongitude = "placeLongitude";
+        public static final String placeAddress = "placeAddress";
     }
 
     public static class FSUsedLocations {
@@ -53,12 +58,10 @@ public class Constants {
 
         //Maps Error Handling
         public static final String currentLocationNotUpdatedYet = "Please wait for a few seconds for current location to be updated!";
-    }
+        public static final String routeRenderingInProgress = "Please wait, the route is being rendered!";
 
-    public static class CameraZoomLevel {
-        public static final int city = 10;
-        public static final int streets = 15;
-        public static final float betweenCityAndStreets = (float) 12.5;
+        //Edit site Message
+        public static final String editSiteSuccess = "Edit site successfully!";
     }
 
     public static class PlaceAddressComponentTypes {
@@ -76,4 +79,22 @@ public class Constants {
         public static final int createSiteItemIndex = 2;
     }
 
+    public static class GoogleMaps {
+        public static class CameraZoomLevel {
+            public static final int city = 10;
+            public static final int streets = 15;
+            public static final float betweenCityAndStreets = (float) 12.5;
+        }
+
+        public static class DirectionApi {
+            public static final String baseUrl = "https://maps.googleapis.com/maps/api/directions/";
+            public static final String originParam = "origin";
+            public static final String destinationParam = "destination";
+            public static final String modeParam = "mode";
+            public static final String outputParam = "json";
+
+
+        }
+
+    }
 }

@@ -1,10 +1,14 @@
 package com.trungngo.asm2.model;
 
-import java.time.LocalDate;
+import com.google.firebase.firestore.DocumentId;
+
 import java.util.Date;
 import java.util.List;
 
 public class User {
+
+    @DocumentId
+    private String docId;
     private String username;
     private String phone;
     private Date birthDate;
@@ -12,8 +16,10 @@ public class User {
     private String email;
     private List<String> ownSitesId;
     private List<String> participatingSitesId;
+    private Boolean superuser;
 
-    public User(String username, String phone, Date birthDate, String gender, String email, List<String> ownSitesId, List<String> participatingSitesId) {
+    public User(String docId, String username, String phone, Date birthDate, String gender, String email, List<String> ownSitesId, List<String> participatingSitesId, Boolean superuser) {
+        this.docId = docId;
         this.username = username;
         this.phone = phone;
         this.birthDate = birthDate;
@@ -21,6 +27,7 @@ public class User {
         this.email = email;
         this.ownSitesId = ownSitesId;
         this.participatingSitesId = participatingSitesId;
+        this.superuser = superuser;
     }
 
     public User() {}
@@ -61,6 +68,10 @@ public class User {
         return email;
     }
 
+    public Boolean getSuperuser() {
+        return superuser;
+    }
+
     public void setEmail(String email) {
         this.email = email;
     }
@@ -87,5 +98,13 @@ public class User {
 
     public void setParticipatingSitesId(List<String> participatingSitesId) {
         this.participatingSitesId = participatingSitesId;
+    }
+
+    public String getDocId() {
+        return docId;
+    }
+
+    public void setDocId(String docId) {
+        this.docId = docId;
     }
 }

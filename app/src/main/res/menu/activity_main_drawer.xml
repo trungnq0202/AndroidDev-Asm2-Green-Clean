@@ -6,18 +6,35 @@
         <group android:checkableBehavior="single">
             <item
                 android:id="@+id/nav_home"
-                android:icon="@drawable/ic_menu_camera"
-                android:title="@string/menu_home" />
+                android:icon="@drawable/ic_sites_list"
+                android:title="My created sites" />
+
+            <item
+                android:id="@+id/nav_participating_sites"
+                android:icon="@drawable/ic_my_participating_site"
+                android:title="My participating sites"
+                />
+
+            <item
+                android:id="@+id/nav_superuser"
+                android:icon="@drawable/ic_admin"
+                android:title="Admin"
+                />
 
             <item
                 android:id="@+id/nav_maps"
                 android:icon="@drawable/ic_find_site"
-                android:title="Join sites" />
+                android:title="Find and join sites" />
 
             <item
                 android:id="@+id/create_site"
                 android:icon="@drawable/ic_create_site"
                 android:title="Create site" />
+
+            <item
+                android:id="@+id/edit_site"
+                android:visible="false"
+                />
         </group>
 
 </menu>

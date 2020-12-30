@@ -8,13 +8,15 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.VectorDrawable;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -28,7 +30,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
@@ -47,7 +49,10 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -66,18 +71,30 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.maps.android.clustering.ClusterManager;
 import com.trungngo.asm2.Constants;
 import com.trungngo.asm2.R;
-import com.trungngo.asm2.model.MyClusterItem;
+import com.trungngo.asm2.model.GoogleMaps.CustomClusterItemRender;
+import com.trungngo.asm2.model.GoogleMaps.MyClusterItem;
 import com.trungngo.asm2.model.Site;
 import com.trungngo.asm2.model.User;
-import com.trungngo.asm2.ui.create_site.CreateSiteViewModel;
-import com.trungngo.asm2.utilities.GooglePlaceAddressComponentsParser;
+import com.trungngo.asm2.utilities.DateStringParser;
+import com.trungngo.asm2.utilities.DirectionsJSONParser;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
-public class MapsFragment extends Fragment implements OnMapReadyCallback {
+public class MapsFragment extends Fragment implements OnMapReadyCallback,
+        ClusterManager.OnClusterItemClickListener<MyClusterItem> {
 
     //View elements
     private FloatingActionButton getMyLocationBtn;
@@ -93,6 +110,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     private LocationRequest locationRequest;
     private PlacesClient placesClient;
     private AutocompleteSupportFragment autocompleteFragment;
+    private Marker currentUserLocationMarker;
+    private MyClusterItem currentTargetLocationClusterItem;
+    private ArrayList<Polyline> currentRoute = new ArrayList<>();
+    ProgressDialog progressDialog;
 
     //Maps marker clustering
     private ClusterManager<MyClusterItem> clusterManager;
@@ -103,6 +124,11 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     private FirebaseUser currentUser;
     User currentUserObject = null;
     String currentUserDocId = null;
+
+    //
+    private enum UserRoleToSite {
+        ADMIN, PARTICIPANT, NONE
+    }
 
     public static MapsFragment newInstance() {
         return new MapsFragment();
@@ -116,49 +142,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
 
     private void linkViewElements(View rootView) {
         getMyLocationBtn = rootView.findViewById(R.id.fragmentMapsFindMyLocationBtn);
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        //Init view
-        View view = inflater.inflate(R.layout.fragment_maps, container, false);
-        linkViewElements(view);
-        mAuth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
-        currentUser = mAuth.getCurrentUser();
-        initMapsFragment();
-        initGooglePlacesAutocomplete();
-        setActionHandlers();
-        return view;
-    }
-
-    @SuppressLint({"MissingPermission", "RestrictedApi"})
-    private void startLocationUpdate() {
-        locationRequest = new LocationRequest();
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(30 * 1000); //30s
-        locationRequest.setFastestInterval(15 * 1000); //15s
-        locationClient.requestLocationUpdates(locationRequest,
-                new LocationCallback() {
-                    @Override
-                    public void onLocationResult(LocationResult locationResult) {
-                        super.onLocationResult(locationResult);
-                        Location location = locationResult.getLastLocation();
-                        LatLng latLng = new LatLng(location.getLatitude(),
-                                location.getLongitude());
-//                        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-//                          mMap.clear();
-//                        mMap.addMarker(new MarkerOptions().position(latLng)
-//                                        .icon(BitmapDescriptorFactory.defaultMarker()));
-//                        Toast.makeText(getActivity(),
-//                                "(" + location.getLatitude() + ","+
-//                                        location.getLongitude() +")",
-//                                Toast.LENGTH_SHORT).show();
-                    }
-                }
-                , null);
     }
 
     private void setActionHandlers() {
@@ -184,33 +167,12 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
     }
 
-    @SuppressLint("MissingPermission")
-    public void onGetPositionClick() {
-        locationClient.getLastLocation().
-                addOnSuccessListener(new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        if (location == null) {
-                            Toast.makeText(getActivity(),
-                                    Constants.ToastMessage.currentLocationNotUpdatedYet,
-                                    Toast.LENGTH_LONG).show();
-                            return;
-                        }
-                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                        mMap.addMarker(new MarkerOptions().position(latLng)
-                                .icon(bitmapDescriptorFromVector(getActivity(), R.drawable.ic_current_location_marker)));
-                        smoothlyMoveCameraToPosition(latLng, Constants.CameraZoomLevel.streets);
-//                        Toast.makeText(getActivity(),
-//                                "(" + location.getLatitude() + ","+
-//                                        location.getLongitude() +")",
-//                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
-    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
+    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId, int color) {
+        if (context == null) {
+            return null;
+        }
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
-        DrawableCompat.setTint(vectorDrawable, Color.BLUE);
+        DrawableCompat.setTint(vectorDrawable, color);
         DrawableCompat.setTintMode(vectorDrawable, PorterDuff.Mode.SRC_IN);
         vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
         Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
@@ -219,27 +181,11 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        String apiKey = getString(R.string.google_maps_key);
-        if (!Places.isInitialized()) {
-            Places.initialize(getActivity().getApplicationContext(), apiKey);
-        }
-        this.placesClient = Places.createClient(getActivity().getApplicationContext());
-        mMap = googleMap;
-        requestPermission();
-        locationClient = LocationServices.getFusedLocationProviderClient(getActivity());
-        mMap.getUiSettings().setZoomControlsEnabled(true);
-        startLocationUpdate();
-        setUpCluster();
-        onGetPositionClick();  // Position the map.
-    }
-
+    @SuppressLint("PotentialBehaviorOverride")
     private void setUpCluster() {
-
         // Initialize the manager with the context and the map.
         // (Activity extends context, so we can pass 'this' in the constructor.)
-        clusterManager = new ClusterManager<MyClusterItem>(getActivity(), mMap);
+        clusterManager = new ClusterManager<MyClusterItem>(requireActivity(), mMap);
 
         // Point the map's listeners at the listeners implemented by the cluster
         // manager.
@@ -247,14 +193,23 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         mMap.setOnMarkerClickListener(clusterManager);
 
         // Add cluster items (markers) to the cluster manager.
+        clusterManager.setRenderer(new CustomClusterItemRender(getActivity(), mMap, clusterManager));
+        clusterManager.setOnClusterItemClickListener(this);
+
         fetchSitesThenMakeClusters();
     }
 
-    private void addClusterItem(LatLng latLng, String siteName) {
-        double lat = latLng.latitude;
-        double lng = latLng.longitude;
-        MyClusterItem offsetItem = new MyClusterItem(lat, lng, "Title " + siteName, "Snippet " + siteName);
-        clusterManager.addItem(offsetItem);
+    private void addClusterItem(Site site) {
+        MyClusterItem clusterItem = new MyClusterItem(
+                site.getPlaceLatitude(),
+                site.getPlaceLongitude(),
+                bitmapDescriptorFromVector(
+                        getContext(),
+                        R.drawable.ic_site_marker,
+                        Color.GREEN
+                ),
+                site);
+        clusterManager.addItem(clusterItem);
     }
 
     private void fetchSitesThenMakeClusters() {
@@ -266,22 +221,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Site site = document.toObject(Site.class);
-                                final String placeId = site.getLocationId();
-                                final List<Place.Field> placeFields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG);
-                                final FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeId, placeFields);
-                                placesClient.fetchPlace(request).addOnSuccessListener((response) -> {
-                                    Place place = response.getPlace();
-                                    addClusterItem(place.getLatLng(), site.getSiteName());
-//                                    Log.i(TAG, "Place found: " + place.getName());
-
-                                }).addOnFailureListener((exception) -> {
-                                    if (exception instanceof ApiException) {
-                                        final ApiException apiException = (ApiException) exception;
-//                                        Log.e(TAG, "Place not found: " + exception.getMessage());
-                                        final int statusCode = apiException.getStatusCode();
-                                        // TODO: Handle error with given status code.
-                                    }
-                                });
+                                addClusterItem(site);
                             }
                         } else {
 
@@ -292,10 +232,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
 
     private void initGooglePlacesAutocomplete() {
         //Init the SDK
-        String apiKey = getString(R.string.api_key);
+        String apiKey = getString(R.string.google_api_key);
 
         if (!Places.isInitialized()) {
-            Places.initialize(getActivity().getApplicationContext(), "AIzaSyDIMOeueEaTD8QrMDMPAkMQn7uN3WJpvOs");
+            Places.initialize(getActivity().getApplicationContext(), apiKey);
         }
 
         this.placesClient = Places.createClient(getActivity().getApplicationContext());
@@ -316,11 +256,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                 ));
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
     private void requestPermission() {
         ActivityCompat.requestPermissions(getActivity(),
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
@@ -332,7 +267,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(@NotNull Place place) {
-                smoothlyMoveCameraToPosition(place.getLatLng(), Constants.CameraZoomLevel.betweenCityAndStreets);
+                smoothlyMoveCameraToPosition(place.getLatLng(), Constants.GoogleMaps.CameraZoomLevel.betweenCityAndStreets);
             }
 
             @Override
@@ -343,11 +278,128 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         });
     }
 
+    private void updateCurrentUserLocationMarker(LatLng newLatLng) {
+        if (currentUserLocationMarker != null) {
+            currentUserLocationMarker.remove();
+        }
+        currentUserLocationMarker = mMap.addMarker(
+                new MarkerOptions()
+                        .position(newLatLng)
+                        .icon(bitmapDescriptorFromVector(
+                                getActivity(),
+                                R.drawable.ic_current_location_marker, Color.BLUE)
+                        )
+                        .title("You are here!")
+        );
+    }
+
+    private void drawRoute() {
+        progressDialog = new ProgressDialog(getActivity());
+        progressDialog.setMessage(Constants.ToastMessage.routeRenderingInProgress);
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        // Checks, whether start and end locations are captured
+        // Getting URL to the Google Directions API
+        String url = getRouteUrl(currentUserLocationMarker.getPosition(), currentTargetLocationClusterItem.getPosition(), "driving");
+
+        FetchDataTask fetchDataTask = new FetchDataTask();
+
+        // Start fetching json data from Google Directions API
+        fetchDataTask.execute(url);
+    }
+
+    // TODO implement this method
+    private void updateCurrentRoute() {
+        drawRoute();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        String apiKey = getString(R.string.google_maps_key);
+        if (!Places.isInitialized()) {
+            Places.initialize(getActivity().getApplicationContext(), apiKey);
+        }
+        this.placesClient = Places.createClient(getActivity().getApplicationContext());
+        mMap = googleMap;
+        requestPermission();
+        locationClient = LocationServices.getFusedLocationProviderClient(getActivity());
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        startLocationUpdate();
+        setUpCluster();
+        onGetPositionClick();  // Position the map.
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+
+    @SuppressLint("MissingPermission")
+    public void onGetPositionClick() {
+        locationClient.getLastLocation().
+                addOnSuccessListener(new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        if (location == null) {
+                            Toast.makeText(getActivity(),
+                                    Constants.ToastMessage.currentLocationNotUpdatedYet,
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        if (currentUserLocationMarker == null) {
+                            updateCurrentUserLocationMarker(latLng);
+                        }
+                        smoothlyMoveCameraToPosition(latLng, Constants.GoogleMaps.CameraZoomLevel.streets);
+//                        Toast.makeText(getActivity(),
+//                                "(" + location.getLatitude() + ","+
+//                                        location.getLongitude() +")",
+//                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    @SuppressLint({"MissingPermission", "RestrictedApi"})
+    private void startLocationUpdate() {
+        locationRequest = new LocationRequest();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(5 * 1000); //5s
+        locationRequest.setFastestInterval(5 * 1000); //5s
+        locationClient.requestLocationUpdates(locationRequest,
+                new LocationCallback() {
+                    @Override
+                    public void onLocationResult(LocationResult locationResult) {
+                        super.onLocationResult(locationResult);
+                        Location location = locationResult.getLastLocation();
+                        LatLng latLng = new LatLng(location.getLatitude(),
+                                location.getLongitude());
+                        updateCurrentUserLocationMarker(latLng);
+                    }
+                }
+                , null);
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        //Init view
+        View view = inflater.inflate(R.layout.fragment_maps, container, false);
+        linkViewElements(view);
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        currentUser = mAuth.getCurrentUser();
+        initMapsFragment();
+        initGooglePlacesAutocomplete();
+        setActionHandlers();
+        return view;
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        System.out.println("CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC");
-        System.out.println("Destroying MapsFragment View");
     }
 
     @Override
@@ -355,7 +407,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         super.onActivityCreated(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(MapsViewModel.class);
 
-        // TODO: Use the ViewModel
+        //Use the ViewModel
         mViewModel = ViewModelProviders.of(getActivity()).get(MapsViewModel.class);
         mViewModel.getCurrentUserObject().observe(getActivity(), new Observer<User>() {
             @Override
@@ -371,4 +423,206 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
             }
         });
     }
+
+
+    //////////////////// Action handlers for each cluster item's custom info window /////////////////////
+
+    @SuppressLint("SetTextI18n")
+    private void setSiteDetailsToCustomInfoWindow(MyClusterItem item, UserRoleToSite role) {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
+        final View popupWindow = getLayoutInflater().inflate(R.layout.custom_info_window, null);
+        dialogBuilder.setView(popupWindow);
+        Dialog dialog = dialogBuilder.create();
+        dialog.show();
+
+        //Set event details to text view
+        TextView customInfoEventName = popupWindow.findViewById(R.id.customInfoEventNameTextView);
+        customInfoEventName.setText("Event: " + item.getSite().getSiteName());
+        TextView customInfoWindowLocation = popupWindow.findViewById(R.id.customInfoWindowLocationTextView);
+        customInfoWindowLocation.setText(item.getSite().getPlaceName());
+        TextView customInfoWindowAddress = popupWindow.findViewById(R.id.customInfoWindowAddressTextView);
+        customInfoWindowAddress.setText(item.getSite().getPlaceAddress());
+        TextView customInfoWindowStartDate = popupWindow.findViewById(R.id.customInfoStartDateTextView);
+        TextView customInfoWindowEndDate = popupWindow.findViewById(R.id.customInfoEndDateTextView);
+
+        try {
+            customInfoWindowStartDate.setText(DateStringParser.parseFromDateObjectDDMMYYYY(item.getSite().getStartDate()));
+            customInfoWindowEndDate.setText(DateStringParser.parseFromDateObjectDDMMYYYY(item.getSite().getEndDate()));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        //Show message based on the current user's role to site
+        switch (role) {
+            case ADMIN:
+                TextView customInfoAdminMsg = popupWindow.findViewById(R.id.customInfoAdminMsgTextView);
+                customInfoAdminMsg.setVisibility(View.VISIBLE);
+                break;
+            case PARTICIPANT:
+                TextView customInfoAlreadyJoinedMsg = popupWindow.findViewById(R.id.customInfoAlreadyJoinedMsgTextView);
+                customInfoAlreadyJoinedMsg.setVisibility(View.VISIBLE);
+                break;
+            default:
+                Button customInfoJoinBtn = popupWindow.findViewById(R.id.customInfoWindowJoinBtn);
+                customInfoJoinBtn.setVisibility(View.VISIBLE);
+        }
+        setShowDirectionBtnListener(item, popupWindow, dialog);
+
+    }
+
+    private void setShowDirectionBtnListener(MyClusterItem item, View popupWindow, Dialog dialog) {
+        Button showDirectionBtn = popupWindow.findViewById(R.id.customInfoWindowShowDirectionBtn);
+        showDirectionBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                currentTargetLocationClusterItem = item;
+                updateCurrentRoute();
+                dialog.dismiss();
+            }
+        });
+    }
+
+    private boolean validateSiteParticipantsThenFillDetails(MyClusterItem item) {
+        return item.getSite().getParticipantsId().contains(this.currentUserDocId);
+    }
+
+    private boolean validateSiteAdminThenFillDetails(MyClusterItem item) {
+        return item.getSite().getAdminId().equals(this.currentUserDocId);
+    }
+
+    @Override
+    public boolean onClusterItemClick(MyClusterItem item) {
+        if (validateSiteAdminThenFillDetails(item)) {
+            setSiteDetailsToCustomInfoWindow(item, UserRoleToSite.ADMIN);
+        } else if (validateSiteParticipantsThenFillDetails((item))) {
+            setSiteDetailsToCustomInfoWindow(item, UserRoleToSite.PARTICIPANT);
+        } else {
+            setSiteDetailsToCustomInfoWindow(item, UserRoleToSite.NONE);
+        }
+        return true;
+    }
+
+    private class FetchDataTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... url) {
+            String data = "";
+            try {
+                data = fetchDataFromURL(url[0]);
+            } catch (Exception ignored) {
+            }
+            return data;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            ParserTask parserTask = new ParserTask();
+            parserTask.execute(result);
+        }
+    }
+
+    /**
+     * A class to parse the Google Places in JSON format
+     */
+    private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
+
+        // Parsing the data in non-ui thread
+        @Override
+        protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
+
+            JSONObject jObject;
+            List<List<HashMap<String, String>>> routes = null;
+
+            try {
+                jObject = new JSONObject(jsonData[0]);
+                DirectionsJSONParser parser = new DirectionsJSONParser();
+
+                routes = parser.parse(jObject);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return routes;
+        }
+
+        @Override
+        protected void onPostExecute(List<List<HashMap<String, String>>> result) {
+            progressDialog.dismiss();
+
+            //Clear current route
+            for (Polyline polyline : currentRoute) {
+                polyline.remove();
+            }
+            currentRoute.clear();
+
+            ArrayList<LatLng> points = null;
+            PolylineOptions lineOptions = null;
+
+            for (int i = 0; i < result.size(); i++) {
+                points = new ArrayList();
+                lineOptions = new PolylineOptions();
+
+                List<HashMap<String, String>> route = result.get(i);
+
+                for (int j = 0; j < route.size(); j++) {
+                    HashMap<String, String> point = route.get(j);
+
+                    double lat = Double.parseDouble(point.get("lat"));
+                    double lng = Double.parseDouble(point.get("lng"));
+                    LatLng position = new LatLng(lat, lng);
+
+                    points.add(position);
+                }
+
+                lineOptions.addAll(points);
+                lineOptions.width(12);
+                lineOptions.color(Color.RED);
+                lineOptions.geodesic(true);
+
+            }
+
+            // Drawing polyline in the Google Map for the i-th route
+            currentRoute.add(mMap.addPolyline(lineOptions));
+        }
+    }
+
+    private String getRouteUrl(LatLng origin, LatLng destination, String directionMode) {
+        String originParam = Constants.GoogleMaps.DirectionApi.originParam +
+                "=" + origin.latitude + "," + origin.longitude;
+        String destinationParam = Constants.GoogleMaps.DirectionApi.destinationParam +
+                "=" + destination.latitude + "," + destination.longitude;
+        String modeParam = Constants.GoogleMaps.DirectionApi.modeParam + "=" + directionMode;
+        String params = originParam + "&" + destinationParam + "&" + modeParam;
+        String output = Constants.GoogleMaps.DirectionApi.outputParam;
+        return Constants.GoogleMaps.DirectionApi.baseUrl + output + "?" + params
+                + "&key=" + getString(R.string.google_api_key);
+    }
+
+    /**
+     * A method to download json data from url
+     */
+    private String fetchDataFromURL(String strUrl) throws IOException {
+        String data = "";
+        InputStream iStream = null;
+        HttpURLConnection urlConnection = null;
+        try {
+            URL url = new URL(strUrl);
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.connect();
+            iStream = urlConnection.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
+            StringBuffer sb = new StringBuffer();
+            String line = "";
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+            data = sb.toString();
+            br.close();
+        } catch (Exception e) {
+        } finally {
+            iStream.close();
+            urlConnection.disconnect();
+        }
+        return data;
+    }
 }
+
