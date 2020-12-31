@@ -671,6 +671,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         return true;
     }
 
+    /**
+     * A Class to call Google Directions API with callback
+     */
     private class FetchDataTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... url) {
