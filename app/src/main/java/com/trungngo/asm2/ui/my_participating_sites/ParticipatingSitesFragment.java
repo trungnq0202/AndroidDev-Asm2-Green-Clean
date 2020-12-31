@@ -74,6 +74,10 @@ public class ParticipatingSitesFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Link all view elements to global variables
+     * @param rootView
+     */
     private void linkViewElements(View rootView) {
         emptyMessageTextView = rootView.findViewById(R.id.empty_message);
         siteInfoContainer = rootView.findViewById(R.id.site_container);
@@ -83,6 +87,9 @@ public class ParticipatingSitesFragment extends Fragment {
     }
 
 
+    /**
+     * Render all sites info cells, also listen to collections' real time update for re-rendering accordingly
+     */
     private void loadSiteCells() {
         siteList = new ArrayList<>();
 

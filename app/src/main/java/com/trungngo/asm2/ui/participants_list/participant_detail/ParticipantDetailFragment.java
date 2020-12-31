@@ -40,6 +40,10 @@ public class ParticipantDetailFragment extends Fragment {
         return new ParticipantDetailFragment();
     }
 
+    /**
+     * Link all view elements to global variables
+     * @param rootView
+     */
     private void linkViewElements(View rootView) {
         profileUsername = rootView.findViewById(R.id.profileUsernameTextView);
         profilePhone = rootView.findViewById(R.id.profilePhoneTextView);
@@ -56,6 +60,10 @@ public class ParticipantDetailFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Fill user details to all textViews
+     * @throws ParseException
+     */
     private void setUserDetails() throws ParseException {
         profileUsername.setText(userObject.getUsername());
         profilePhone.setText(userObject.getPhone());

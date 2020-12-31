@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Helper methods for parsing data fetched from Google Directions API
+ */
 public class DirectionsJSONParser {
 
     /**
@@ -61,6 +64,11 @@ public class DirectionsJSONParser {
         return routes;
     }
 
+    /**
+     * Parsing polyline string
+     * @param encoded
+     * @return
+     */
     private List decodePoly(String encoded) {
 
         List poly = new ArrayList();

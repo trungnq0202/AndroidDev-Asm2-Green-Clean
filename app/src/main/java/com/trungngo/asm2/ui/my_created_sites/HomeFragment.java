@@ -56,6 +56,10 @@ public class HomeFragment extends Fragment {
     private RecyclerView siteInfoContainer;
     private TextView emptyMessageTextView;
 
+    /**
+     * Link all view elements to global variables
+     * @param rootView
+     */
     private void linkViewElements(View rootView) {
         emptyMessageTextView = rootView.findViewById(R.id.empty_message);
         siteInfoContainer = rootView.findViewById(R.id.site_container);
@@ -63,6 +67,7 @@ public class HomeFragment extends Fragment {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         siteInfoContainer.setLayoutManager(linearLayoutManager);
     }
+
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -75,6 +80,9 @@ public class HomeFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Render all sites info cells, also listen to collections' real time update for re-rendering accordingly
+     */
     private void loadSiteCells() {
         siteList = new ArrayList<>();
         siteList.clear();
@@ -102,6 +110,7 @@ public class HomeFragment extends Fragment {
                     }
                 });
     }
+
 
     @Override
     public void onDestroyView() {

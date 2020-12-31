@@ -96,7 +96,10 @@ public class EditSiteFragment extends Fragment {
         return new EditSiteFragment();
     }
 
-    //Connect view elements of layout to this class variable
+    /**
+     * Connect view elements of layout to this class variable
+     * @param rootView
+     */
     private void linkViewElements(View rootView) {
         countryTextView = rootView.findViewById(R.id.editSiteCountryTextView);
         streetNumberTextView = rootView.findViewById(R.id.editSiteStreetNumberTextView);
@@ -113,7 +116,10 @@ public class EditSiteFragment extends Fragment {
 
     }
 
-    //Set address components on textview
+    /**
+     * Set address components contents on textView
+     * @param parsedAddressComponents
+     */
     private void setAddressComponentTextViewContent(HashMap<String, String> parsedAddressComponents) {
         countryTextView.setText(parsedAddressComponents.get(Constants.PlaceAddressComponentTypes.country));
         streetNumberTextView.setText(parsedAddressComponents.get(Constants.PlaceAddressComponentTypes.streetNumber));
@@ -122,6 +128,9 @@ public class EditSiteFragment extends Fragment {
         districtTextView.setText(parsedAddressComponents.get(Constants.PlaceAddressComponentTypes.adminAreaLv2));
     }
 
+    /**
+     * Initialize GooglePlacesAutocomplete
+     */
     private void initGooglePlacesAutocomplete() {
         //Init the SDK
         String apiKey = getString(R.string.google_maps_key);
@@ -147,15 +156,19 @@ public class EditSiteFragment extends Fragment {
                 ));
     }
 
-    // Set up a PlaceSelectionListener to handle the response.
+
+    /**
+     * Set up a PlaceSelectionListener to handle the response.
+     */
     private void setPlaceSelectedActionHandler() {
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(@NotNull Place place) {
+                //When user choose a new place by searching using GooglePlaceAutocomplete search bar
                 chosenPlace = place;
-                checkUsedLocation();
+                checkUsedLocation(); //Check if this location has been used to make an event
                 setAddressComponentTextViewContent(GooglePlaceAddressComponentsParser
-                        .parseAddressComponents(place));
+                        .parseAddressComponents(place)); //Set this place details' address components in textView
             }
 
             @Override
@@ -166,7 +179,11 @@ public class EditSiteFragment extends Fragment {
         });
     }
 
-    //date picker dialog for birthday
+    /**
+     * date picker dialog for start/end date choosing
+     * @param dateBtn
+     * @param dateEditText
+     */
     private void setDatePickerBtnAction(Button dateBtn, EditText dateEditText) {
         final Calendar c = Calendar.getInstance();
         year = c.get(Calendar.YEAR);
@@ -190,7 +207,10 @@ public class EditSiteFragment extends Fragment {
 
     }
 
-    //Validation after input birth date in the edit text
+    /**
+     * Validation after input start/end date in the edit text
+     * @param dateEditText
+     */
     private void setDateEditTextAutoFormat(EditText dateEditText) {
         dateEditText.addTextChangedListener(new TextWatcher() {
             private String curDateStr = "";
@@ -265,7 +285,10 @@ public class EditSiteFragment extends Fragment {
         });
     }
 
-    //Validate if site details are enough (country, street, city, district fields must not be empty)
+    /**
+     * Validate if site details are enough (country, street, city, district fields must not be empty)
+     * @return
+     */
     private boolean checkSiteLocationDetailsNotEnough() {
         return
                 countryTextView.getText().toString().isEmpty()
@@ -274,24 +297,37 @@ public class EditSiteFragment extends Fragment {
                         || districtTextView.getText().toString().isEmpty();
     }
 
-    //Validate empty date
+    /**
+     * Validate empty date
+     * @return
+     */
     private boolean checkEmptyEventDate() {
         return
                 startDateEditText.getText().toString().isEmpty()
                         || endDateEditText.getText().toString().isEmpty();
     }
 
-    //Validate if startDate is after endDate
+    /**
+     * Validate if startDate is after endDate
+     * @param startDate
+     * @param endDate
+     * @return
+     */
     private boolean checkEventDateWrongOrder(Date startDate, Date endDate) {
         return startDate.after(endDate);
     }
 
-    //Check if the site name is not entered by the user yet
+    /**
+     * Check if the site name is not entered by the user yet
+     * @return
+     */
     private boolean checkEmptySiteName() {
         return siteNameEditText.getText().toString().isEmpty();
     }
 
-    //Check if this place has been used to make an event
+    /**
+     * Check if this place has been used to make an event
+     */
     private void checkUsedLocation() {
         db.collection(Constants.FSUsedLocations.usedLocationsCollection)
                 .whereEqualTo(Constants.FSUsedLocations.locationIdField, chosenPlace.getId())
@@ -308,7 +344,10 @@ public class EditSiteFragment extends Fragment {
                 });
     }
 
-    //Validate all site details
+    /**
+     * Validate all site details
+     * @return
+     */
     private boolean validateSiteDetails() {
         //Validate if this location has been used to make an event
         if (usedPlace) {
@@ -355,7 +394,9 @@ public class EditSiteFragment extends Fragment {
     }
 
 
-    //Set createSiteBtn Action Handler
+    /**
+     * Set editSiteBtn Action Listener
+     */
     private void setEditSiteBtnHandler() {
         editSiteBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -369,6 +410,9 @@ public class EditSiteFragment extends Fragment {
         });
     }
 
+    /**
+     * Submit Site details to FireStore database
+     */
     private void submitSiteEditDetails(){
         Map<String, Object> siteData = new HashMap<>();
         siteData.put(Constants.FSSite.siteNameField, siteNameEditText.getText().toString());
@@ -399,7 +443,9 @@ public class EditSiteFragment extends Fragment {
                 });
     }
 
-    //Create necessary action handlers
+    /**
+     * Create necessary action handlers
+     */
     private void setActionHandlers() {
         //Set OnPlaceSelectedActionHandler to fill all location details editText
         setPlaceSelectedActionHandler();
@@ -417,6 +463,9 @@ public class EditSiteFragment extends Fragment {
     }
 
 
+    /**
+     * Fetch current place's details and set address components on textViews
+     */
     private void setCurrentPlaceDetails(){
         final List<Place.Field> placeFields = Arrays.asList(
                 Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG,
@@ -438,16 +487,27 @@ public class EditSiteFragment extends Fragment {
         });
     }
 
+    /**
+     * Move to superUserFragment
+     */
     private void moveToSuperUserFragment(){
         Navigation.findNavController(getActivity(), R.id.nav_host_fragment).navigate(R.id.nav_superuser);
     }
 
+    /**
+     * Set current siteDetails to textViews
+     * @throws ParseException
+     */
     private void setCurrentSiteDetails() throws ParseException {
         siteNameEditText.setText(currentSite.getSiteName());
         startDateEditText.setText(DateStringParser.parseFromDateObjectDDMMYYYY(currentSite.getStartDate()));
         endDateEditText.setText(DateStringParser.parseFromDateObjectDDMMYYYY(currentSite.getEndDate()));
     }
 
+    /**
+     * Fill all temporary info in all textViews of EditForm
+     * @throws ParseException
+     */
     private void fillEditForm() throws ParseException {
         if (currentSite != null){
             setCurrentPlaceDetails();

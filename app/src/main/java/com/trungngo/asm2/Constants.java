@@ -47,7 +47,7 @@ public class Constants {
         public static final String emptyMessageInputError = "Please type your message to send!";
 
         //Create site validation message
-        public static final String notEnoughDetailsOfSite = "Please choose a more specific site!";
+        public static final String notEnoughDetailsOfSite = "Please choose a more specific site. Street, City and district must be filled in!";
         public static final String wrongEventDateOrder = "Event start date must be before end date!";
         public static final String createSiteSuccess = "Create new site successfully!";
         public static final String emptyEventDateError = "Please choose your start/end event date!";

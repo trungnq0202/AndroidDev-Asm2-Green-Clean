@@ -79,13 +79,16 @@ public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
 
-    //Set up navigation drawer activity
+    /**
+     * Set up navigation drawer activity
+     */
     private void navigationDrawerSetup() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
+
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
@@ -99,7 +102,9 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navigationView, navController);
     }
 
-    //Connect view elements of layout to this class variable
+    /**
+     * Connect view elements of layout to this class variable
+     */
     private void linkViewElements() {
         NavigationView navigationView = findViewById(R.id.nav_view);
         LinearLayout navHeaderView = (LinearLayout) navigationView.getHeaderView(0);
@@ -107,13 +112,17 @@ public class MainActivity extends AppCompatActivity {
         navHeaderEmailTextView = (TextView) navHeaderView.getChildAt(2);
     }
 
-    //Set nav header username and email
+    /**
+     * Set nav header username and email
+     */
     private void setNavHeaderEmailAndUsername() {
         navHeaderEmailTextView.setText(currentUser.getEmail());
         navHeaderUsernameTextView.setText(currentUserObject.getUsername());
     }
 
-    //Get instances of Firebase FireStore Auth, db, current user
+    /**
+     * Get instances of Firebase FireStore Auth, db, current user
+     */
     private void initFirebaseCurrentUserInfo() {
         //Get instances of Firebase FireStore
         mAuth = FirebaseAuth.getInstance();
@@ -122,7 +131,9 @@ public class MainActivity extends AppCompatActivity {
         getCurrentUserObject(); //Get current user object info
     }
 
-    //Init all child fragments' view models
+    /**
+     * Init all child fragments' view models
+     */
     private void initAllChildFragmentsViewModel() {
         createSiteViewModel = ViewModelProviders.of(this).get(CreateSiteViewModel.class);
         mapsViewModel = ViewModelProviders.of(this).get(MapsViewModel.class);
@@ -134,7 +145,10 @@ public class MainActivity extends AppCompatActivity {
         siteDetailViewModel = ViewModelProviders.of(this).get(SiteDetailViewModel.class);
     }
 
-    //Send current user data through child fragments' view models
+
+    /**
+     * Send current user data through child fragments' view models
+     */
     private void setAllChildFragmentsViewModelData() {
         createSiteViewModel.setData(currentUserObject, currentUserDocId);
         mapsViewModel.setData(currentUserObject, currentUserDocId);
@@ -148,18 +162,23 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        createNotificationChannel();
-        navigationDrawerSetup();
-        initFirebaseCurrentUserInfo();
-        linkViewElements();
-        initAllChildFragmentsViewModel();
-        handleNotificationIntentIfExists();
+        createNotificationChannel(); //Create notification channel
+        navigationDrawerSetup(); //setup navigation drawer
+        initFirebaseCurrentUserInfo(); //Get all fireStore instances
+        linkViewElements(); //Get view elements
+        initAllChildFragmentsViewModel(); //Init all child fragments viewModels
+        handleNotificationIntentIfExists(); //Handle notification onClick
     }
 
+    /**
+     * Handle notification onClick
+     */
     private void handleNotificationIntentIfExists() {
+        //Check if there is an Intent fired by clicking on the notification
         Intent i = getIntent();
         String siteId = (String) i.getExtras().getString("editedSiteId");
         i.removeExtra("editedSiteId");
+        //If yes, handle by getting data of that site and move to SiteDetailFragment
         if (siteId != null) {
             db.collection(Constants.FSSite.siteCollection)
                     .document(siteId)
@@ -175,10 +194,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Move to SiteDetailFragment
+     */
     private void moveToSiteDetail() {
         Navigation.findNavController(this, R.id.nav_host_fragment).navigate(R.id.site_detail);
     }
 
+    /**
+     * Set event listener when this current user's participating site changes
+     */
     private void setParticipatingDocSnapShotListener() {
         for (String participatingSiteId : currentUserObject.getParticipatingSitesId()) {
             db.collection(Constants.FSSite.siteCollection)
@@ -195,11 +220,11 @@ public class MainActivity extends AppCompatActivity {
                                 switch (dc.getType()) {
                                     case ADDED:
                                         break;
-                                    case MODIFIED:
+                                    case MODIFIED: //Only handle "Update" changes
                                         site = dc.getDocument().toObject(Site.class);
                                         String docId = site.getDocId();
                                         if (currentUserObject.getParticipatingSitesId().contains(docId)){
-                                            pushNotification(docId);
+                                            pushNotification(docId); //Push notification
                                         }
                                         break;
                                     case REMOVED:
@@ -211,31 +236,48 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Create Intent to go to SiteDetail when the notification is clicked
+     * @param siteId
+     * @return PendingIntent
+     */
     private PendingIntent onClickNotificationListener(String siteId) {
         Intent intent = new Intent(this, MainActivity.class);
-        intent.setAction("REFRESH" + System.currentTimeMillis());
-        intent.putExtra("editedSiteId", siteId);
+        intent.setAction("REFRESH" + System.currentTimeMillis()); //Generate Unique action to prevent PendingIntent caching Extras Bundle
+        intent.putExtra("editedSiteId", siteId); //Send SiteId
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         return pendingIntent;
     }
 
+    /**
+     * Create notification builder
+     * @param siteId
+     * @return NotificationCompat.Builder
+     */
     private NotificationCompat.Builder createNotificationBuilder(String siteId) {
         return new NotificationCompat.Builder(this, Constants.Notification.CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher_round)
-                .setContentTitle(Constants.Notification.title)
-                .setContentText(Constants.Notification.onSiteChangeTextContent)
-                .setStyle(new NotificationCompat.BigTextStyle()
+                .setSmallIcon(R.mipmap.ic_launcher_round)   //Icon
+                .setContentTitle(Constants.Notification.title) //Title
+                .setContentText(Constants.Notification.onSiteChangeTextContent) //Text content
+                .setStyle(new NotificationCompat.BigTextStyle() //BigText
                         .bigText(Constants.Notification.onSiteChangeTextContent))
-                .setContentIntent(onClickNotificationListener(siteId))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true);
+                .setContentIntent(onClickNotificationListener(siteId)) //Set contentIntent
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT) //Priority
+                .setAutoCancel(true); //Auto removed when clicked
     }
 
+    /**
+     * Push notification
+     * @param siteId
+     */
     private void pushNotification(String siteId) {
         NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
         notificationManagerCompat.notify(100, createNotificationBuilder(siteId).build());
     }
 
+    /**
+     * Create notification channel settings
+     */
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = Constants.Notification.CHANNEL_NAME;
@@ -243,6 +285,7 @@ public class MainActivity extends AppCompatActivity {
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
             NotificationChannel channel = new NotificationChannel(Constants.Notification.CHANNEL_ID, name, importance);
             channel.setDescription(description);
+
             // Register the channel with the system; you can't change the importance
             // or other notification behaviors after this
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
@@ -250,7 +293,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //Get current user object from FireStore
+    /**
+     * Get current user object from FireStore
+     */
     private void getCurrentUserObject() {
         db.collection(Constants.FSUser.userCollection)
                 .whereEqualTo(Constants.FSUser.emailField, currentUser.getEmail())
@@ -271,12 +316,16 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Hide admin menu item if this user is not superuser
+     */
     private void hideAdminMenuItem() {
         NavigationView navigationView = findViewById(R.id.nav_view);
         Menu menu = navigationView.getMenu();
         MenuItem adminMenuItem = menu.getItem(2);
         adminMenuItem.setVisible(false);
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -285,6 +334,9 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Logout menu item listener (sits in 3-dots collapsing menu)
+     */
     private void onLogoutOptionClick() {
         mAuth.signOut();
         Intent i = new Intent(MainActivity.this, StartActivity.class);

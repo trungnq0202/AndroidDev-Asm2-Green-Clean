@@ -67,6 +67,10 @@ public class ParticipantsListFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Link all view elements to global variables
+     * @param rootView
+     */
     private void linkViewElements(View rootView) {
         participantInfoContainer = rootView.findViewById(R.id.participant_container);
 
@@ -75,6 +79,9 @@ public class ParticipantsListFragment extends Fragment {
     }
 
 
+    /**
+     * Render all participants info cells, also listen to collections' real time update for re-rendering accordingly
+     */
     private void loadParticipantsList() {
         userList = new ArrayList<>();
 

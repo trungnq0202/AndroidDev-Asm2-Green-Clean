@@ -6,6 +6,9 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.maps.android.clustering.ClusterItem;
 import com.trungngo.asm2.model.Site;
 
+/**
+ * ClusterItem class
+ */
 public class MyClusterItem implements ClusterItem {
     private final LatLng position;
     private final String title;

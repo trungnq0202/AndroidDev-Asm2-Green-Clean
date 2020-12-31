@@ -39,6 +39,10 @@ public class SiteDetailFragment extends Fragment {
         return new SiteDetailFragment();
     }
 
+    /**
+     * Link all view elements to global variables
+     * @param rootView
+     */
     private void linkViewElements(View rootView) {
         siteDetailEventName = rootView.findViewById(R.id.siteDetailEventNameTextView);
         siteDetailLocation = rootView.findViewById(R.id.siteDetailLocationTextView);
@@ -55,6 +59,10 @@ public class SiteDetailFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Fill all site's details to textViews
+     * @throws ParseException
+     */
     private void setSiteDetails() throws ParseException {
         siteDetailEventName.setText(siteObject.getSiteName());
         siteDetailLocation.setText(siteObject.getPlaceName());

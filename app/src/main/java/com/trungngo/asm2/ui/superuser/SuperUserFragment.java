@@ -56,6 +56,10 @@ public class SuperUserFragment extends Fragment {
         return new SuperUserFragment();
     }
 
+    /**
+     * Link all view elements to global variables
+     * @param rootView
+     */
     private void linkViewElements(View rootView) {
         siteInfoContainer = rootView.findViewById(R.id.site_container);
 
@@ -63,6 +67,9 @@ public class SuperUserFragment extends Fragment {
         siteInfoContainer.setLayoutManager(linearLayoutManager);
     }
 
+    /**
+     * Render all sites info cells, also listen to collections' real time update for re-rendering accordingly
+     */
     private void loadSiteCells() {
         siteList = new ArrayList<>();
         db.collection(Constants.FSSite.siteCollection)

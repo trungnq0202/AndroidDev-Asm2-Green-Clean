@@ -126,7 +126,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
     User currentUserObject = null;
     String currentUserDocId = null;
 
-    //
+    //Role of User to site
     private enum UserRoleToSite {
         ADMIN, PARTICIPANT, NONE
     }
@@ -135,21 +135,34 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         return new MapsFragment();
     }
 
+    /**
+     * Init Google MapsFragment
+     */
     private void initMapsFragment() {
         supportMapFragment = (SupportMapFragment)
                 getChildFragmentManager().findFragmentById(R.id.fragment_maps);
         supportMapFragment.getMapAsync(this);
     }
 
+    /**
+     * Connect view elements of layout to this class variable
+     * @param rootView
+     */
     private void linkViewElements(View rootView) {
         getMyLocationBtn = rootView.findViewById(R.id.fragmentMapsFindMyLocationBtn);
     }
 
+    /**
+     * Set Action Handlers
+     */
     private void setActionHandlers() {
-        setGetMyLocationBtnHandler();
-        setPlaceSelectedActionHandler();
+        setGetMyLocationBtnHandler(); //Find My location Button listener
+        setPlaceSelectedActionHandler(); //GooglePlaceAutocomplete listener
     }
 
+    /**
+     * //Find My location Button listener
+     */
     private void setGetMyLocationBtnHandler() {
         getMyLocationBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -159,6 +172,11 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         });
     }
 
+    /**
+     * Smoothly change camera position with zoom level
+     * @param latLng
+     * @param zoomLevel
+     */
     private void smoothlyMoveCameraToPosition(LatLng latLng, float zoomLevel) {
         CameraPosition cameraPosition = new CameraPosition.Builder()
                 .target(latLng)
@@ -168,6 +186,13 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel));
     }
 
+    /**
+     * Get BitmapDescriptor from drawable vector asset, for custom cluster marker
+     * @param context
+     * @param vectorResId
+     * @param color
+     * @return
+     */
     private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId, int color) {
         if (context == null) {
             return null;
@@ -182,6 +207,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
+    /**
+     * Set up cluster items on Google maps
+     */
     @SuppressLint("PotentialBehaviorOverride")
     private void setUpCluster() {
         // Initialize the manager with the context and the map.
@@ -202,6 +230,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         clusterManager.cluster();
     }
 
+    /**
+     * Add a cluster item to Google map
+     * @param site
+     */
     private void addClusterItem(Site site) {
         MyClusterItem clusterItem = new MyClusterItem(
                 site.getPlaceLatitude(),
@@ -215,6 +247,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         clusterManager.addItem(clusterItem);
     }
 
+    /**
+     * Fetch all sites data to create clusters on Google map
+     */
     private void fetchSitesThenMakeClusters() {
         db.collection(Constants.FSSite.siteCollection)
                 .get()
@@ -234,6 +269,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
                 });
     }
 
+    /**
+     * Init GooglePlacesAutocomplete search bar
+     */
     private void initGooglePlacesAutocomplete() {
         //Init the SDK
         String apiKey = getString(R.string.google_api_key);
@@ -260,13 +298,18 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
                 ));
     }
 
+    /**
+     * Request user for location permission
+     */
     private void requestPermission() {
         ActivityCompat.requestPermissions(getActivity(),
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                 MY_LOCATION_REQUEST);
     }
 
-    // Set up a PlaceSelectionListener to handle the response.
+    /**
+     * Set up a PlaceSelectionListener to handle the response
+     */
     private void setPlaceSelectedActionHandler() {
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -282,6 +325,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         });
     }
 
+    /**
+     * Update current user location marker
+     * @param newLatLng
+     */
     private void updateCurrentUserLocationMarker(LatLng newLatLng) {
         if (currentUserLocationMarker != null) {
             currentUserLocationMarker.remove();
@@ -297,6 +344,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         );
     }
 
+    /**
+     * Draw new route from current user location to target location
+     */
     private void drawRoute() {
         prevUserLocation = new LatLng(currentUserLocationMarker.getPosition().latitude,
                 currentUserLocationMarker.getPosition().longitude);
@@ -313,7 +363,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         fetchDataTask.execute(url);
     }
 
-    // Update new route
+    /**
+     * Update new route from current user location to target location
+     */
     private void updateCurrentRoute() {
         if (currentTargetLocationClusterItem != null) {
             if (prevTargetLocation == null) {
@@ -331,19 +383,23 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
+    /**
+     * when Google map is ready
+     * @param googleMap
+     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         String apiKey = getString(R.string.google_maps_key);
-        if (!Places.isInitialized()) {
+        if (!Places.isInitialized()) { //Init GooglePlaceAutocomplete if not existed
             Places.initialize(getActivity().getApplicationContext(), apiKey);
         }
         this.placesClient = Places.createClient(getActivity().getApplicationContext());
         mMap = googleMap;
-        requestPermission();
+        requestPermission(); //Request user for location permission
         locationClient = LocationServices.getFusedLocationProviderClient(getActivity());
         mMap.getUiSettings().setZoomControlsEnabled(true);
-        startLocationUpdate();
-        setUpCluster();
+        startLocationUpdate(); //Start location update listener
+        setUpCluster(); //Set up cluster on Google Map
         onGetPositionClick();  // Position the map.
     }
 
@@ -352,7 +408,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         super.onResume();
     }
 
-
+    /**
+     * Find my position action handler
+     */
     @SuppressLint("MissingPermission")
     public void onGetPositionClick() {
         locationClient.getLastLocation().
@@ -378,6 +436,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
                 });
     }
 
+    /**
+     * //Start location update listener
+     */
     @SuppressLint({"MissingPermission", "RestrictedApi"})
     private void startLocationUpdate() {
         locationRequest = new LocationRequest();
@@ -444,8 +505,13 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
     }
 
 
-    //////////////////// Action handlers for each cluster item's custom info window /////////////////////
+    /****************** Action handlers for each cluster item's custom info window **********************/
 
+    /**
+     * Fill all site details in custom info window (actually dialog)
+     * @param item
+     * @param role
+     */
     @SuppressLint("SetTextI18n")
     private void setSiteDetailsToCustomInfoWindow(MyClusterItem item, UserRoleToSite role) {
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
@@ -473,23 +539,29 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
 
         //Show message based on the current user's role to site
         switch (role) {
-            case ADMIN:
+            //Base on current user's role to this site
+            case ADMIN: //Admin
                 TextView customInfoAdminMsg = popupWindow.findViewById(R.id.customInfoAdminMsgTextView);
-                customInfoAdminMsg.setVisibility(View.VISIBLE);
+                customInfoAdminMsg.setVisibility(View.VISIBLE); //Show admin statement message
                 break;
-            case PARTICIPANT:
+            case PARTICIPANT: //Participant
                 TextView customInfoAlreadyJoinedMsg = popupWindow.findViewById(R.id.customInfoAlreadyJoinedMsgTextView);
-                customInfoAlreadyJoinedMsg.setVisibility(View.VISIBLE);
+                customInfoAlreadyJoinedMsg.setVisibility(View.VISIBLE); //Show participant statement message
                 break;
-            default:
+            default: //None
                 Button customInfoJoinBtn = popupWindow.findViewById(R.id.customInfoWindowJoinBtn);
-                customInfoJoinBtn.setVisibility(View.VISIBLE);
+                customInfoJoinBtn.setVisibility(View.VISIBLE); //Show join button
                 setJoinEventBtnListener(item, popupWindow, dialog);
         }
         setShowDirectionBtnListener(item, popupWindow, dialog);
-
     }
 
+    /**
+     * Aciton handler for clicking show direction to site button
+     * @param item
+     * @param popupWindow
+     * @param dialog
+     */
     private void setShowDirectionBtnListener(MyClusterItem item, View popupWindow, Dialog dialog) {
         Button showDirectionBtn = popupWindow.findViewById(R.id.customInfoWindowShowDirectionBtn);
         showDirectionBtn.setOnClickListener(new View.OnClickListener() {
@@ -502,7 +574,11 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         });
     }
 
-    //Add new site to current user's list of own sites
+
+    /**
+     * Add new site to current user's list of own sites
+     * @param item
+     */
     private void updateCurrentUserParticipatingSites(MyClusterItem item) {
         currentUserObject.getParticipatingSitesId().add(item.getSite().getDocId());
         db.collection(Constants.FSUser.userCollection)
@@ -520,6 +596,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
                 });
     }
 
+    /**
+     * Add this user doc id to site's participants' id list after clicking on join button
+     * @param item
+     */
     private void updateCurrentSiteParticipants(MyClusterItem item) {
         item.getSite().getParticipantsId().add(currentUserDocId);
         db.collection(Constants.FSSite.siteCollection)
@@ -537,6 +617,12 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
                 });
     }
 
+    /**
+     * Action handler for clicking on join event button
+     * @param item
+     * @param popupWindow
+     * @param dialog
+     */
     private void setJoinEventBtnListener(MyClusterItem item, View popupWindow, Dialog dialog) {
         Button joinEventBtn = popupWindow.findViewById(R.id.customInfoWindowJoinBtn);
         joinEventBtn.setOnClickListener(new View.OnClickListener() {
@@ -550,14 +636,29 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
 
     }
 
+    /**
+     * Check if this current user have already participated in this event
+     * @param item
+     * @return
+     */
     private boolean validateSiteParticipantsThenFillDetails(MyClusterItem item) {
         return item.getSite().getParticipantsId().contains(this.currentUserDocId);
     }
 
+    /**
+     * Check if this current user is the admin of this event
+     * @param item
+     * @return
+     */
     private boolean validateSiteAdminThenFillDetails(MyClusterItem item) {
         return item.getSite().getAdminId().equals(this.currentUserDocId);
     }
 
+    /**
+     * Show A popup dialog containing site info when clicking on the cluster item marker
+     * @param item
+     * @return
+     */
     @Override
     public boolean onClusterItemClick(MyClusterItem item) {
         if (validateSiteAdminThenFillDetails(item)) {
@@ -651,6 +752,13 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
+    /**
+     * Method to get URL for fetching data from Google Directions API (finding direction from origin to destination)
+     * @param origin
+     * @param destination
+     * @param directionMode
+     * @return
+     */
     private String getRouteUrl(LatLng origin, LatLng destination, String directionMode) {
         String originParam = Constants.GoogleMaps.DirectionApi.originParam +
                 "=" + origin.latitude + "," + origin.longitude;
@@ -664,7 +772,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
     }
 
     /**
-     * A method to download json data from url
+     * A method to fetch json data from url
      */
     private String fetchDataFromURL(String strUrl) throws IOException {
         String data = "";
