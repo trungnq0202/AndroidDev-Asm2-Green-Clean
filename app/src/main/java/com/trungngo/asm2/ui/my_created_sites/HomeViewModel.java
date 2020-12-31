@@ -1,16 +1,17 @@
-package com.trungngo.asm2.ui.superuser;
+package com.trungngo.asm2.ui.my_created_sites;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.trungngo.asm2.model.User;
 
-public class SuperUserViewModel extends ViewModel {
+public class HomeViewModel extends ViewModel {
     // Implement the ViewModel
     private MutableLiveData<User> currentUserObject;
     private MutableLiveData<String> currentUserDocId;
 
-    public SuperUserViewModel(){
+    public HomeViewModel(){
         currentUserObject = new MutableLiveData<>();
         currentUserDocId = new MutableLiveData<>();
     }

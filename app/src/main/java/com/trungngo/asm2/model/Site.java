@@ -5,7 +5,7 @@ import com.google.firebase.firestore.DocumentId;
 import java.util.Date;
 import java.util.List;
 
-public class Site {
+public class Site{
 
     @DocumentId
     private String docId;

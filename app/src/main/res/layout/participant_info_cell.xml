@@ -24,48 +24,24 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/site_info_cell_siteName"
+                android:id="@+id/participant_info_cell_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.5"
-                android:textSize="15sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/site_info_cell_placeName"
+                android:id="@+id/participant_info_cell_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
                 android:layout_weight="0.5"
                 tools:textSize="8sp" />
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="70dp"
-            android:layout_marginLeft="10dp"
-            android:orientation="vertical">
-
-            <Button
-                android:id="@+id/site_info_cell_editBtn"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="0.5"
-                android:text="Edit" />
-
-            <Button
-                android:id="@+id/site_info_cell_showUserListBtn"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="0.5"
-                android:text="Participants" />
-
-        </LinearLayout>
-
-
         <Button
-            android:id="@+id/site_info_cell_detailBtn"
+            android:id="@+id/participant_info_cell_detailBtn"
             android:layout_width="wrap_content"
             android:layout_height="70dp"
             android:layout_marginLeft="10dp"

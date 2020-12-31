@@ -7,13 +7,13 @@
 
     <fragment
         android:id="@+id/nav_home"
-        android:name="com.trungngo.asm2.ui.home.HomeFragment"
-        android:label="Created sites"
+        android:name="com.trungngo.asm2.ui.my_created_sites.HomeFragment"
+        android:label="My created sites"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/nav_participating_sites"
-        android:name="com.trungngo.asm2.ui.participating_sites.ParticipatingSitesFragment"
+        android:name="com.trungngo.asm2.ui.my_participating_sites.ParticipatingSitesFragment"
         android:label="Participating sites"
         tools:layout="@layout/fragment_participating_sites" />
 
@@ -40,6 +40,28 @@
         android:name="com.trungngo.asm2.ui.edit_site.EditSiteFragment"
         android:label="Edit site"
         tools:layout="@layout/fragment_edit_site"
+        />
+
+    <fragment
+        android:id="@+id/site_participants"
+        android:name="com.trungngo.asm2.ui.participants_list.ParticipantsListFragment"
+        android:label="Participants list"
+        tools:layout="@layout/fragment_user_list"
+        />
+
+
+    <fragment
+        android:id="@+id/participant_detail"
+        android:name="com.trungngo.asm2.ui.participants_list.participant_detail.ParticipantDetailFragment"
+        android:label="Participant profile"
+        tools:layout="@layout/fragment_participant_detail"
+        />
+
+    <fragment
+        android:id="@+id/site_detail"
+        android:name="com.trungngo.asm2.ui.site_detail.SiteDetailFragment"
+        android:label="Site details"
+        tools:layout="@layout/fragment_site_detail"
         />
 
 </navigation>

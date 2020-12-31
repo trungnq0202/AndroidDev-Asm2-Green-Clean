@@ -92,9 +92,14 @@ public class Constants {
             public static final String destinationParam = "destination";
             public static final String modeParam = "mode";
             public static final String outputParam = "json";
-
-
         }
+    }
 
+    public static class Notification{
+        public static String CHANNEL_ID = "GAC";
+        public static String CHANNEL_NAME = "GreenAndClean notification";
+        public static String CHANNEL_DES = "GreenAndClean app notification";
+        public static String title = "Green&Clean notification";
+        public static String onSiteChangeTextContent = "There has been some changes made to one of your participating site, click to see...";
     }
 }

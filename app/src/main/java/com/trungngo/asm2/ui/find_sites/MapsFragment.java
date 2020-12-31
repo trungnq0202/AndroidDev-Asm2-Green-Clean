@@ -111,9 +111,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
     private PlacesClient placesClient;
     private AutocompleteSupportFragment autocompleteFragment;
     private Marker currentUserLocationMarker;
+    private LatLng prevUserLocation;
     private MyClusterItem currentTargetLocationClusterItem;
+    private LatLng prevTargetLocation;
     private ArrayList<Polyline> currentRoute = new ArrayList<>();
-    ProgressDialog progressDialog;
 
     //Maps marker clustering
     private ClusterManager<MyClusterItem> clusterManager;
@@ -185,7 +186,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
     private void setUpCluster() {
         // Initialize the manager with the context and the map.
         // (Activity extends context, so we can pass 'this' in the constructor.)
-        clusterManager = new ClusterManager<MyClusterItem>(requireActivity(), mMap);
+        clusterManager = new ClusterManager<MyClusterItem>(getActivity(), mMap);
 
         // Point the map's listeners at the listeners implemented by the cluster
         // manager.
@@ -197,6 +198,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         clusterManager.setOnClusterItemClickListener(this);
 
         fetchSitesThenMakeClusters();
+
+        clusterManager.cluster();
     }
 
     private void addClusterItem(Site site) {
@@ -221,6 +224,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Site site = document.toObject(Site.class);
+//                                final String placeId = site.getPlaceId();
                                 addClusterItem(site);
                             }
                         } else {
@@ -294,10 +298,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
     }
 
     private void drawRoute() {
-        progressDialog = new ProgressDialog(getActivity());
-        progressDialog.setMessage(Constants.ToastMessage.routeRenderingInProgress);
-        progressDialog.setCancelable(false);
-        progressDialog.show();
+        prevUserLocation = new LatLng(currentUserLocationMarker.getPosition().latitude,
+                currentUserLocationMarker.getPosition().longitude);
+        prevTargetLocation = new LatLng(currentTargetLocationClusterItem.getPosition().latitude,
+                currentTargetLocationClusterItem.getPosition().longitude);
 
         // Checks, whether start and end locations are captured
         // Getting URL to the Google Directions API
@@ -309,9 +313,22 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
         fetchDataTask.execute(url);
     }
 
-    // TODO implement this method
+    // Update new route
     private void updateCurrentRoute() {
-        drawRoute();
+        if (currentTargetLocationClusterItem != null) {
+            if (prevTargetLocation == null) {
+                drawRoute();
+            } else if ((currentTargetLocationClusterItem.getPosition().latitude != prevTargetLocation.latitude)
+                    && (currentTargetLocationClusterItem.getPosition().longitude != prevTargetLocation.longitude)){
+                drawRoute();
+            }
+            else {
+                if ((currentUserLocationMarker.getPosition().latitude != prevUserLocation.latitude)
+                        && (currentUserLocationMarker.getPosition().longitude != prevUserLocation.longitude)) {
+                    drawRoute();
+                }
+            }
+        }
     }
 
     @Override
@@ -376,6 +393,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
                         LatLng latLng = new LatLng(location.getLatitude(),
                                 location.getLongitude());
                         updateCurrentUserLocationMarker(latLng);
+                        updateCurrentRoute();
+
                     }
                 }
                 , null);
@@ -465,6 +484,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
             default:
                 Button customInfoJoinBtn = popupWindow.findViewById(R.id.customInfoWindowJoinBtn);
                 customInfoJoinBtn.setVisibility(View.VISIBLE);
+                setJoinEventBtnListener(item, popupWindow, dialog);
         }
         setShowDirectionBtnListener(item, popupWindow, dialog);
 
@@ -480,6 +500,54 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
                 dialog.dismiss();
             }
         });
+    }
+
+    //Add new site to current user's list of own sites
+    private void updateCurrentUserParticipatingSites(MyClusterItem item) {
+        currentUserObject.getParticipatingSitesId().add(item.getSite().getDocId());
+        db.collection(Constants.FSUser.userCollection)
+                .document(currentUserDocId)
+                .update(Constants.FSUser.participatingSitesIdField, currentUserObject.getParticipatingSitesId())
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+
+                        } else {
+
+                        }
+                    }
+                });
+    }
+
+    private void updateCurrentSiteParticipants(MyClusterItem item) {
+        item.getSite().getParticipantsId().add(currentUserDocId);
+        db.collection(Constants.FSSite.siteCollection)
+                .document(item.getSite().getDocId())
+                .update(Constants.FSSite.participantsIdField, item.getSite().getParticipantsId())
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+
+                        } else {
+
+                        }
+                    }
+                });
+    }
+
+    private void setJoinEventBtnListener(MyClusterItem item, View popupWindow, Dialog dialog) {
+        Button joinEventBtn = popupWindow.findViewById(R.id.customInfoWindowJoinBtn);
+        joinEventBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateCurrentUserParticipatingSites(item);
+                updateCurrentSiteParticipants(item);
+                dialog.dismiss();
+            }
+        });
+
     }
 
     private boolean validateSiteParticipantsThenFillDetails(MyClusterItem item) {
@@ -546,8 +614,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,
 
         @Override
         protected void onPostExecute(List<List<HashMap<String, String>>> result) {
-            progressDialog.dismiss();
-
             //Clear current route
             for (Polyline polyline : currentRoute) {
                 polyline.remove();

@@ -1,7 +1,6 @@
 package com.trungngo.asm2.ui.create_site;
 
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
@@ -15,7 +14,6 @@ import androidx.navigation.Navigation;
 
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,14 +35,11 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.trungngo.asm2.Constants;
 import com.trungngo.asm2.R;
 import com.trungngo.asm2.model.User;
-import com.trungngo.asm2.ui.home.HomeFragment;
 import com.trungngo.asm2.utilities.DateStringParser;
 import com.trungngo.asm2.utilities.GooglePlaceAddressComponentsParser;
 
@@ -56,7 +51,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class CreateSiteFragment extends Fragment {

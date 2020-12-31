@@ -33,7 +33,6 @@ public class GooglePlaceAddressComponentsParser {
             }
         }
 
-        //Get Postcode
         return parsedAddressComponents;
     }
 
